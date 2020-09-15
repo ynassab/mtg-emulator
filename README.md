@@ -1,0 +1,2 @@
+# mtg-emulator
+Deck management for a Magic: the Gathering game (drawing, scrying, adding, and removing cards). Cards are fetched from the Scryfall API and displayed on your browser, so all cards in existence are allowed. A full game of MTG is possible with this code by copying the displayed the cards onto an image collection board, such as a PowerPoint slide, but I plan to gradually transition those functionalities into this software, and host a website for it
