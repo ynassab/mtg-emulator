@@ -1,2 +1,14 @@
 # mtg-emulator
-Deck management for a Magic: the Gathering game (drawing, scrying, adding, and removing cards). Cards are fetched from the Scryfall API and displayed in your browser, so all cards in existence are allowed. A full game of MTG is possible with this code by copying the displayed the cards onto an image collection board, such as a PowerPoint slide, but I plan to gradually transition those functionalities into this software, and host a website for it.
+For playing Magic: the Gathering remotely with friends. The JS code acts as the player's hand and provides deck management: drawing, scrying, finding, adding, and shuffling. Battlefield, graveyard, and other gameplay areas are conducted in Google Slides (or in Powerpoint while streaming).
+
+# Instructions:
+1. Open mtg.html
+2. Input decklist
+3. Play
+
+# Google Slides Formatting
+2400x1600px slides will allow appropriately-sized images. Cards in the UI are 244px.
+
+# Limitations
+Resizing UI window or inspecting in the browser will cause cards to display less effectively.
+
