@@ -14,10 +14,10 @@ const CARDS_WIDTH = window.innerWidth - BUTTONS_WIDTH - 18;
 async function player_ready() {
 	
 	var decklist = document.getElementById('decklist_box').value;
-	decklist = decklist.split("\n");
-	fix_decklist();
-	//remove all the 1s at the start
-	for (var j = 0; j < decklist.length; j++) {
+	decklist = decklist.split("\n"); // make a list with values separated by new-line character
+	remove_spaces(); // remove empty lines
+	fix_decklist(); // enumerate list elements
+	for (var j = 0; j < decklist.length; j++) { // remove all the 1s at the start
 		decklist[j] = decklist[j].substring(2);
 	}
 	DECK.cards = decklist;
@@ -73,9 +73,23 @@ async function player_ready() {
 						color: #000;
 						font: bold 20px Georgia, serif;
 					}
+				button { background-color: #489003;
+						color: white;
+						font: bold 20px Georgia, serif;
+				}
+						
 			</style>`
 		shuffle();
 		document.getElementById('load_text').innerHTML = 'Total cards in deck: ' + DECK.cards.length;
+	}
+	
+	function remove_spaces() { // remove empty lines in decklist
+		for (var i = 0; i < decklist.length; i++) {
+			if (decklist[i] == '') {
+				decklist.splice(i, 1);
+				remove_spaces(); // restart at i = 0 if space removed
+			}
+		}
 	}
 	
 	function fix_decklist() {
@@ -110,8 +124,7 @@ async function player_ready() {
 				
 				document.getElementById('load_text').innerHTML = 'Loading ' + card; // show progress
 				
-				// check local storage
-				var imgURL = localStorage.getItem(card);
+				var imgURL = localStorage.getItem(card); // check local storage
 				
 				if (imgURL == null) { // fetch image from API
 					var response = await fetch('https://api.scryfall.com/cards/named?fuzzy='+card+'&format=image&version=normal');
@@ -123,7 +136,7 @@ async function player_ready() {
 					}
 				}
 				
-				DECK.card_imgs.push([]); // append an element to the array
+				DECK.card_imgs.push([]); // append element to the array
 				DECK.card_imgs[i][0] = card; // name
 				DECK.card_imgs[i][1] = localStorage.getItem(card); // img
 				
@@ -139,8 +152,7 @@ async function player_ready() {
 }
 
 
-function URLtext(card_name) {
-	// replace characters for URL
+function URLtext(card_name) { // replace characters for URL
 	card_name = card_name.replace(/,/g, '');
 	card_name = card_name.replace(/'/g, '');
 	card_name = card_name.replace(/-/g, '');
@@ -175,11 +187,11 @@ function reveal(card, type) {
 	img.setAttribute('crossorigin', 'anonymous'); // sets SameSite attribute to 'Lax' to prevent cookie issues
 	
 	if (type == 'draw') {
-		document.getElementById('buffer').style = '';
+		document.getElementById('buffer').style = ''; // keep draw div height constant between empty and non-empty hand
 		img.setAttribute("onclick", "pop_img("+img_id_str+")");
 	}
 	else if (type == 'scry') {
-		document.getElementById('scry_explain').innerHTML = 'Left-click to place on top. <br> Right-click to place on bottom. <br> You may need to scroll down to see scried cards. <br>' // explanatory text
+		document.getElementById('scry_explain').innerHTML = 'Left-click to place on top. <br> Right-click to place on bottom. <br> You may need to scroll down to see scried cards. <br>'
 		img.onclick = function(e) {	scry_place(card, img_id_str, 'top'); } // left click to place top
 		img.oncontextmenu = function (e) { // right click to place bottom
 			e.preventDefault(); // prevent menu from opening
