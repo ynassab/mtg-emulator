@@ -8,7 +8,7 @@ class Deck {
 const DECK = new Deck()
 const CARD_SIZE = 244;
 const BUFFER = 'height:'+CARD_SIZE*1.395+';width:'+CARD_SIZE;
-const BUTTONS_WIDTH = 250;
+const BUTTONS_WIDTH = 260;
 const CARDS_WIDTH = window.innerWidth - BUTTONS_WIDTH - 18;
 
 async function player_ready() {
@@ -32,18 +32,25 @@ async function player_ready() {
 				<div style='position: relative; float: bottom; margin-top: auto; display: block'>
 					<div id='buttons' style='width:`+BUTTONS_WIDTH+`; float: left'>
 						<div>
-							<button onclick="reveal(\'draw\')">draw</button>
+							<button onclick="reveal(null,\'draw\')">draw</button>
 						</div>
 						<br>
 						<div id="scry_btn_div">
-							<button onclick="reveal(\'scry\')">scry</button> <br><br>
+							<button onclick="reveal(null,\'scry\')">scry</button><br>
+							<div id='scry_explain'>
+							</div>
 						</div>
+						<br>
 						<div id="find_div">
-							<button onclick="find()">search in deck</button>
+							<button onclick="find()">search in deck</button><br>
+							<div id='find_div_explain'>
+							</div>
 						</div>
 						<br>
 						<div id="add_div">
-							<button onclick="add()">add to deck</button>
+							<button onclick="add()">add to deck</button><br>
+							<div id='add_div_explain'>
+							</div>
 						</div>
 						<br>
 						<div>
@@ -73,18 +80,18 @@ async function player_ready() {
 	
 	function fix_decklist() {
 		try {
-			//check the first character of every string and add a new element if it's >1
+			// check the first character of every string and add a new element if it's >1
 			for (var i = 0; i < decklist.length; i++) {
 				var element = decklist[i];
-				var count = element.match(/\d+/)[0]; //extract number at start
+				var count = element.match(/\d+/)[0]; // extract number at start
 				if (count > 1)  {
 					var temp_element = element.replace(count, "1");
 					decklist.push(temp_element);
-					decklist[i] = element.replace(count, count-1); //reduce the count of the card in its original place
+					decklist[i] = element.replace(count, count-1); // reduce the count of the card in its original place
 					if (count == 1) {
-						decklist.splice(i, 1); //remove card from place
+						decklist.splice(i, 1); // remove card from place
 					} else {
-						fix_decklist(); //repeat if necessary
+						fix_decklist(); // repeat if necessary
 					}
 				}
 			}
@@ -99,7 +106,7 @@ async function player_ready() {
 		var count = 0;
 		try {
 			for (i in DECK.cards) {
-				let card = DECK.cards[i];
+				var card = DECK.cards[i];
 				
 				document.getElementById('load_text').innerHTML = 'Loading ' + card; // show progress
 				
@@ -107,14 +114,9 @@ async function player_ready() {
 				var imgURL = localStorage.getItem(card);
 				
 				if (imgURL == null) { // fetch image from API
-					// let proxy_url = 'https://cors-anywhere.herokuapp.com/' // rectifies lack of Access-Control-Allow-Origin header in the response
-					let card_url = 'https://api.scryfall.com/cards/named?fuzzy='+card+'&format=image&version=normal';
-					let response = await fetch(card_url);
+					var response = await fetch('https://api.scryfall.com/cards/named?fuzzy='+card+'&format=image&version=normal');
 					var imgURL = await response.url;
-					
-					//save to local storage
-					localStorage.setItem(card, imgURL);
-					
+					localStorage.setItem(card, imgURL); //save to local storage
 					if (!response.ok) { // if error encounted in fetch
 						document.getElementById('load_text').innerHTML = 'Unable to identify the card ' + card + '. Please try again.';
 						return null
@@ -146,11 +148,13 @@ function URLtext(card_name) {
 	return card_name;
 }
 
-function reveal(type) {
+function reveal(card, type) {
 	
-	var card = DECK.cards[0];
-	DECK.cards.shift(); // remove card from deck
-	
+	if (card==null) { // reveal top card if not specified
+		var card = DECK.cards[0];
+		DECK.cards.shift(); // remove card from deck
+	}
+
 	// find associated image
 	for (var i = 0; i < DECK.card_imgs.length; i++) {
 		if (DECK.card_imgs[i][0] == card) { 
@@ -175,7 +179,7 @@ function reveal(type) {
 		img.setAttribute("onclick", "pop_img("+img_id_str+")");
 	}
 	else if (type == 'scry') {
-		document.getElementById('scry_btn_div').innerHTML = '<button onclick="reveal(\'scry\')">scry</button> <br> Left-click to place on top. Right-click to place on bottom.' // explanatory text
+		document.getElementById('scry_explain').innerHTML = 'Left-click to place on top. <br> Right-click to place on bottom. <br> You may need to scroll down to see scried cards. <br>' // explanatory text
 		img.onclick = function(e) {	scry_place(card, img_id_str, 'top'); } // left click to place top
 		img.oncontextmenu = function (e) { // right click to place bottom
 			e.preventDefault(); // prevent menu from opening
@@ -228,14 +232,14 @@ function scry_place(card, img_id_str, where) {
 	img.remove();
 	// if scry board is empty, empty text
 	if (document.getElementById('scry').getElementsByTagName('img').length == 0) {
-		document.getElementById('scry_btn_div').innerHTML = '<button onclick="reveal(\'scry\')">scry</button><br><br>';
+		document.getElementById('scry_explain').innerHTML = '';
 	}
 	document.getElementById('load_text').innerHTML = 'Cards remaining: ' + DECK.cards.length; // update card count
 }
 
 function find() {
 	
-	document.getElementById("find_div").innerHTML = "<button onclick='find()'>search in deck</button> Enter name of card: <input type='text' id='find_text'>";
+	append_explain_text('find');
 	
 	var find_input = document.getElementById('find_text');
 	
@@ -253,7 +257,7 @@ function find() {
 		if (check == false) {
 			document.getElementById('load_text').innerHTML = "Card not found. Note that the search is punctuation and case sensitive.";
 		} else if (check == true) {
-			display(find_text, 'draw');
+			reveal(find_text, 'draw');
 			// remove card from deck
 			function inDeck (card) {
 				return card == find_text
@@ -262,13 +266,13 @@ function find() {
 			DECK.cards.splice(i, 1);
 			document.getElementById('load_text').innerHTML = 'Cards remaining: ' + DECK.cards.length;
 		}
-		document.getElementById("find_div").innerHTML = "<button onclick='find()'>search in deck</button>";
+		document.getElementById("find_div_explain").innerHTML = '';
 	}
 }
 
 async function add() {
 	
-	document.getElementById("add_div").innerHTML = "<button onclick='add()'>add to deck</button> Enter name of card: <input type='text' id='add_text'>";
+	append_explain_text('add');	
 	
 	var add_input = document.getElementById('add_text');
 	
@@ -287,13 +291,13 @@ async function add() {
 		if (imgURL != undefined) {
 			DECK.cards.unshift(add_card_unformatted); // add to top of decklist
 			DECK.card_imgs.push([add_card_unformatted, imgURL]) // add to image deck
-			document.getElementById('load_text').innerHTML = add_card_unformatted + " successfully placed on top of deck. Shuffle if necessary. Cards remaining: " + DECK.cards.length;
+			document.getElementById('load_text').innerHTML = add_card_unformatted + " successfully placed on top of deck. <br> Shuffle if necessary. <br> Cards remaining: " + DECK.cards.length;
 		}
 		else {
 			document.getElementById('load_text').innerHTML = "Card unknown. Note that the search is punctuation and case sensitive.";
 		}
 		
-		document.getElementById("add_div").innerHTML = "<button onclick='add()'>add to deck</button>";
+		document.getElementById("add_div_explain").innerHTML = '';
 		
 		async function check_in_database(){
 			
@@ -311,6 +315,22 @@ async function add() {
 	}
 }
 
+function append_explain_text(type) {
+	div = document.getElementById(type+"_div_explain")
+	div.innerHTML = "Enter name of card: <input type='text' id='"+type+"_text'>";
+	if (div.getElementsByTagName('button').length == 0) { // add button if none exist already
+		cancel = document.createElement("button");
+		cancel.innerHTML = "Cancel";
+		cancel.id = type+"_cancel";
+		cancel.onclick = function (e) {
+			document.getElementById(type+"_div_explain").innerHTML = '';
+			document.getElementById(type+"_cancel").remove();
+		}
+		div.innerHTML += "<br>";
+		div.appendChild(cancel);
+	}
+}
+
 function shuffle() {
 	let a = DECK.cards;
 	for (let i = a.length - 1; i > 0; i--) {
@@ -318,5 +338,5 @@ function shuffle() {
 		[a[i], a[j]] = [a[j], a[i]];
 	}
 	DECK.cards = a;
-	document.getElementById('load_text').innerHTML = "Deck successfully shuffled. Cards remaining: " + DECK.cards.length;
+	document.getElementById('load_text').innerHTML = "Deck successfully shuffled. <br> Cards remaining: " + DECK.cards.length;
 }
