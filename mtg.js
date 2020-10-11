@@ -80,7 +80,7 @@ async function player_ready() {
 						
 			</style>`
 		shuffle();
-		document.getElementById('load_text').innerHTML = 'Total cards in deck: ' + DECK.cards.length;
+		document.getElementById('load_text').innerHTML = 'Click on card images to copy to clipboard. <br> <br> Total cards in deck: ' + DECK.cards.length;
 	}
 	
 	function remove_spaces() { // remove empty lines in decklist
@@ -191,7 +191,7 @@ function reveal(card, type) {
 		img.setAttribute("onclick", "pop_img("+img_id_str+")");
 	}
 	else if (type == 'scry') {
-		document.getElementById('scry_explain').innerHTML = 'Left-click to place on top. <br> Right-click to place on bottom. <br> You may need to scroll down to see scried cards. <br>'
+		document.getElementById('scry_explain').innerHTML = 'Left-click to place on top. <br> Right-click to place on bottom. <br><br> You may need to scroll down to see scried cards. <br>'
 		img.onclick = function(e) {	scry_place(card, img_id_str, 'top'); } // left click to place top
 		img.oncontextmenu = function (e) { // right click to place bottom
 			e.preventDefault(); // prevent menu from opening
